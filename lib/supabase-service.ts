@@ -143,3 +143,20 @@ export function mapSupabaseUserToUser(user: SupabaseUser): User {
     avatar: user.avatar_url || "/placeholder.svg?height=40&width=40",
   }
 }
+
+// Delete a transaction by ID
+export async function deleteTransaction(transactionId: string): Promise<void> {
+  const { error } = await supabase
+    .from("transactions")
+    .delete()
+    .eq("id", transactionId); // Filter by transaction ID
+
+  if (error) {
+    console.error("Error deleting transaction:", error);
+    // Re-throw the error so it can be caught by the calling function (in page.tsx)
+    throw new Error(error.message); 
+  }
+  
+  // If deletion is successful, RLS allowed it, and no error occurred.
+  // No explicit return value is needed for a successful delete.
+}

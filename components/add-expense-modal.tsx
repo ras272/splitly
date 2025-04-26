@@ -228,14 +228,14 @@ export default function AddExpenseModal({ isOpen, onClose, onAddExpense, users }
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="notes">Notas (opcional)</Label>
+            <Label htmlFor="notes">Note</Label>
             <Textarea
               id="notes"
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
-              placeholder="Agrega detalles adicionales..."
+              placeholder="Add a note (supports Markdown)"
               className="resize-none"
-              rows={3}
+              rows={4}
             />
           </div>
 

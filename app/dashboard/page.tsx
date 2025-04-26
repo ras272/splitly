@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -15,12 +15,13 @@ import LoanModal from "@/components/loan-modal"
 import CreateGroupModal from "@/components/create-group-modal"
 import ActionButtons from "@/components/action-buttons"
 import { useAuth } from "@/hooks/use-auth"
-import {
+import { 
   getCurrentUser,
   getUserGroups,
   getGroupTransactions,
   getGroupMembers,
   createTransaction,
+  deleteTransaction, // Added deleteTransaction
   createGroup,
   mapSupabaseTransactionToTransaction,
   mapSupabaseUserToUser,
@@ -64,6 +65,17 @@ export default function Dashboard() {
   const [users, setUsers] = useState<User[]>([])
   const [transactions, setTransactions] = useState<Transaction[]>([])
   const [refreshing, setRefreshing] = useState(false)
+  const previousState = useRef<any>({});
+
+  useEffect(() => {
+    console.log("Dashboard component rendered");
+  });
+  useEffect(() => {
+    Object.keys(previousState.current).forEach((key) => {
+      console.log(`State changed: ${key} from`, previousState.current[key], ' to ', {[key]:{loading,error,groups,selectedGroupId,users,transactions,refreshing,addExpenseOpen,settleUpOpen,loanOpen,createGroupOpen}[key]});
+    });
+    previousState.current = {loading,error,groups,selectedGroupId,users,transactions,refreshing,addExpenseOpen,settleUpOpen,loanOpen,createGroupOpen};
+  });
 
   // Modal states
   const [addExpenseOpen, setAddExpenseOpen] = useState(false)
@@ -73,39 +85,58 @@ export default function Dashboard() {
 
   // Fetch data
   const fetchData = async () => {
+    console.log("Iniciando fetchData")
     try {
       setLoading(true)
+
       setError(null)
 
       // Obtener el usuario actual
       const currentUser = await getCurrentUser()
 
-      if (!currentUser) {
-        setError("No se pudo obtener el usuario actual")
-        return
+        if (!selectedGroupId) {
+          console.error("No selected group");
+          setLoading(false);
+          setError("Error al cargar datos");
+          return;
+        }
+
+      // Obtener las transacciones del grupo
+      const groupTransactions = await getGroupTransactions(selectedGroupId);
+      
+      if (!groupTransactions || !Array.isArray(groupTransactions) || groupTransactions.length === 0) {
+        console.error("No group transactions");
+        setLoading(false);
+        setError("Error al cargar datos");
+        return;
       }
+      setTransactions(groupTransactions.map(mapSupabaseTransactionToTransaction))
 
-      // Obtener los grupos del usuario
-      const userGroups = await getUserGroups(currentUser.id)
-      setGroups(userGroups.map((group) => ({ id: group.id, name: group.name })))
+      // Obtener los miembros del grupo
+      const groupMembers = await getGroupMembers(selectedGroupId)
 
-      // Si hay grupos, seleccionar el primero por defecto
-      if (userGroups.length > 0) {
-        const defaultGroupId = userGroups[0].id
-        setSelectedGroupId(defaultGroupId)
-
-        // Obtener las transacciones del grupo
-        const groupTransactions = await getGroupTransactions(defaultGroupId)
-        setTransactions(groupTransactions.map(mapSupabaseTransactionToTransaction))
-
-        // Obtener los miembros del grupo
-        const groupMembers = await getGroupMembers(defaultGroupId)
-        setUsers(groupMembers.map(mapSupabaseUserToUser))
+      if (!groupTransactions || !Array.isArray(groupTransactions) || groupTransactions.length === 0) {
+        throw new Error("Failed to fetch group transactions or data is invalid or empty.")
       }
+      setTransactions(groupTransactions.map(mapSupabaseTransactionToTransaction))
+
+      // Obtener los miembros del grupo
+        if (!groupMembers || !Array.isArray(groupMembers) || groupMembers.length === 0) {
+            console.error("No group members");
+            setLoading(false);
+            setError("Error al cargar datos");
+            return;
+        }
+      setUsers(groupMembers.map(mapSupabaseUserToUser))
     } catch (err) {
-      console.error("Error fetching data:", err)
-      setError("Ocurrió un error al cargar los datos. Por favor, intenta de nuevo.")
+      console.log("Error en fetchData")
+      setLoading(false)
+      setError("Error al cargar datos")
+      console.error("Error fetching data:", err);
     } finally {
+      console.log("Terminando fetchData, setLoading(false)")
+
+      
       setLoading(false)
     }
   }
@@ -113,19 +144,33 @@ export default function Dashboard() {
   // Fetch data for a specific group
   const fetchGroupData = async (groupId: string) => {
     try {
-      setLoading(true)
-      setError(null)
+        setLoading(true);
+        setError(null);
 
       // Obtener las transacciones del grupo
-      const groupTransactions = await getGroupTransactions(groupId)
-      setTransactions(groupTransactions.map(mapSupabaseTransactionToTransaction))
+      const groupTransactions = await getGroupTransactions(groupId);
+      console.log("groupTransactions:", groupTransactions)
+        if (!groupTransactions || !Array.isArray(groupTransactions) || groupTransactions.length === 0) {
+            console.error("No group transactions");
+            setLoading(false);
+            setError("Error al cargar datos");
+            return;
+        }
+        setTransactions(groupTransactions.map(mapSupabaseTransactionToTransaction));
 
       // Obtener los miembros del grupo
-      const groupMembers = await getGroupMembers(groupId)
-      setUsers(groupMembers.map(mapSupabaseUserToUser))
+        const groupMembers = await getGroupMembers(groupId);
+        if (!groupMembers || !Array.isArray(groupMembers) || groupMembers.length === 0) {
+            console.error("No group members");
+            setLoading(false);
+            setError("Error al cargar datos");
+            return;
+        }
+        setUsers(groupMembers.map(mapSupabaseUserToUser));
+
     } catch (err) {
       console.error("Error fetching group data:", err)
-      setError("Ocurrió un error al cargar los datos del grupo. Por favor, intenta de nuevo.")
+      setError(err instanceof Error ? err.message : "Ocurrió un error al cargar los datos del grupo. Por favor, intenta de nuevo.")
     } finally {
       setLoading(false)
     }
@@ -133,7 +178,33 @@ export default function Dashboard() {
 
   // Initial data fetch
   useEffect(() => {
-    fetchData()
+        const loadData = async () => {
+          
+            setLoading(true);
+            try {
+                const currentUser = await getCurrentUser();
+                if (!currentUser) {
+                    toast({ title: "Error al cargar", description: "No hay usuario conectado" });
+                    return;
+                }
+                const userGroups = await getUserGroups(currentUser.id);
+                if (userGroups.length === 0) {
+                    toast({ title: "No tienes grupos", description: "No hay grupos creados" });
+                    return;
+                }
+
+                setGroups(userGroups.map((group) => ({ id: group.id, name: group.name })));
+                setSelectedGroupId(userGroups[0].id)
+                await fetchData();
+            } catch (error) {
+                console.error("Error in loadData:", error);
+            } finally {
+                setLoading(false);
+            }
+        };
+  
+    loadData();
+    
   }, [])
 
   // Fetch data when group changes
@@ -215,12 +286,40 @@ export default function Dashboard() {
     if (!selectedGroupId) return
 
     setRefreshing(true)
-    await fetchGroupData(selectedGroupId)
-    setRefreshing(false)
+    try {
+      await fetchGroupData(selectedGroupId)
+    } finally {
+       setRefreshing(false)
+    }
   }
 
+  // Delete transaction
+  const handleDeleteTransaction = async (transactionId: string) => {
+      try {
+        setError(null); // Clear previous errors
+
+        await deleteTransaction(transactionId); // Call Supabase function
+
+        toast({
+          title: "Gasto eliminado",
+          description: "El gasto se ha eliminado correctamente.",
+        });
+
+        await handleRefresh(); // Refresh data from server
+
+      } catch (err) {
+        console.error("Error deleting transaction:", err);
+        setError("Ocurrió un error al eliminar el gasto.");
+        toast({
+          variant: "destructive",
+          title: "Error",
+          description: "No se pudo eliminar el gasto. Intenta de nuevo.",
+        });
+      }
+  };
+
   // Loading state
-  if (loading && !refreshing) {
+  if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 dark:bg-gray-950 flex items-center justify-center">
         <div className="text-center">
@@ -228,8 +327,21 @@ export default function Dashboard() {
           <p className="text-gray-600 dark:text-gray-400">Cargando datos...</p>
         </div>
       </div>
+    );
+  }
+
+  // Error state
+  if (error !== null) {
+    return (
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-950 flex flex-col items-center justify-center text-center">
+        <p className="text-red-500 mb-4">{error}</p>
+        <Button onClick={() => window.location.reload()}>Recargar página</Button>
+      </div>
     )
   }
+
+    
+  
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-950">
@@ -325,7 +437,13 @@ export default function Dashboard() {
                   />
                 </CardHeader>
                 <CardContent>
-                  <TransactionList transactions={transactions} users={users} />
+                  {/* Updated TransactionList call */}
+                  <TransactionList
+                    transactions={transactions}
+                    users={users}
+                    currentUserId={user?.id || ""} 
+                    onDeleteTransaction={handleDeleteTransaction}
+                  />
                 </CardContent>
               </Card>
             </div>

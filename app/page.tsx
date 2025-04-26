@@ -1,5 +1,5 @@
 "use client"
-
+import { Check } from "lucide-react"
 import { useState, useEffect } from "react"
 import { motion } from "framer-motion"
 import Image from "next/image"
@@ -511,6 +511,160 @@ export default function Home() {
             </motion.div>
           </div>
         </section>
+
+        {/* Pricing Section - NEWLY ADDED */}
+        <section id="pricing" className="bg-white py-16 md:py-24">
+          <div className="container px-4 md:px-6">
+            <div className="mx-auto mb-12 max-w-[800px] text-center">
+              <motion.h2
+                className="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl md:text-5xl"
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: "-100px" }}
+                transition={{ duration: 0.5 }}
+              >
+                Planes simples para cada hogar
+              </motion.h2>
+              <motion.p
+                className="mt-4 text-xl text-gray-700"
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: "-100px" }}
+                transition={{ duration: 0.5, delay: 0.1 }}
+              >
+                Organiza tus gastos compartidos sin complicaciones. Empieza gratis.
+              </motion.p>
+            </div>
+
+            <div className="grid grid-cols-1 gap-8 md:grid-cols-3 lg:gap-12">
+
+              {/* Plan Gratis */}
+              <motion.div
+                className="flex flex-col rounded-xl border border-gray-200 bg-white p-6 shadow-sm transition-shadow hover:shadow-lg"
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: "-100px" }}
+                transition={{ duration: 0.5, delay: 0.2 }}
+              >
+                <h3 className="text-xl font-semibold leading-6 text-gray-900">Starter</h3>
+                <p className="mt-4 text-4xl font-bold tracking-tight text-gray-900">$0<span className="text-base font-medium text-gray-500">/mes</span></p>
+                <p className="mt-3 text-sm text-gray-500">Ideal para empezar a organizar gastos.</p>
+
+                <ul role="list" className="mt-6 space-y-3 text-sm leading-6 text-gray-600 flex-grow">
+                  <li className="flex gap-x-3">
+                    <Check className="h-6 w-5 flex-none text-mint" aria-hidden="true" />
+                    Crear y unirse a grupos ilimitados
+                  </li>
+                  <li className="flex gap-x-3">
+                    <Check className="h-6 w-5 flex-none text-mint" aria-hidden="true" />
+                    Agregar gastos ilimitados
+                  </li>
+                  <li className="flex gap-x-3">
+                    <Check className="h-6 w-5 flex-none text-mint" aria-hidden="true" />
+                    Historial de transacciones básico
+                  </li>
+                  <li className="flex gap-x-3">
+                    <Check className="h-6 w-5 flex-none text-mint" aria-hidden="true" />
+                    Roommates ilimitados
+                  </li>
+                </ul>
+                <Link href="/login" className="mt-8 w-full">
+                   <Button variant="outline" className="w-full">
+                     Comenzar gratis
+                   </Button>
+                </Link>
+              </motion.div>
+
+              {/* Plan Pro (Recomendado) */}
+              <motion.div
+                className="relative flex flex-col rounded-xl border-2 border-mint bg-white p-6 shadow-lg transition-shadow hover:shadow-xl"
+                 initial={{ opacity: 0, y: 20 }}
+                 whileInView={{ opacity: 1, y: 0 }}
+                 viewport={{ once: true, margin: "-100px" }}
+                 transition={{ duration: 0.5, delay: 0.3 }}
+              >
+                <div className="absolute top-0 right-0 -mt-3 mr-3">
+                    <span className="inline-flex items-center rounded-full bg-mint px-3 py-1 text-xs font-bold text-white">
+                        Recomendado
+                    </span>
+                </div>
+                <h3 className="text-xl font-semibold leading-6 text-gray-900">Pro</h3>
+                <p className="mt-4 text-4xl font-bold tracking-tight text-gray-900">$5.99<span className="text-base font-medium text-gray-500">/mes</span></p>
+                <p className="mt-3 text-sm text-gray-500">Organización total para roomies.</p>
+
+                <ul role="list" className="mt-6 space-y-3 text-sm leading-6 text-gray-600 flex-grow">
+                  <li className="flex gap-x-3">
+                    <Check className="h-6 w-5 flex-none text-mint" aria-hidden="true" />
+                    Todo en Starter
+                  </li>
+                  <li className="flex gap-x-3">
+                    <Check className="h-6 w-5 flex-none text-mint" aria-hidden="true" />
+                    Balances automáticos por persona
+                  </li>
+                  <li className="flex gap-x-3">
+                    <Check className="h-6 w-5 flex-none text-mint" aria-hidden="true" />
+                    Recordatorios de pago
+                  </li>
+                  <li className="flex gap-x-3">
+                    <Check className="h-6 w-5 flex-none text-mint" aria-hidden="true" />
+                    Dashboard personal de gastos
+                  </li>
+                  <li className="flex gap-x-3">
+                    <Check className="h-6 w-5 flex-none text-mint" aria-hidden="true" />
+                    Soporte estándar prioritario
+                  </li>
+                </ul>
+                <Link href="/login" className="mt-8 w-full">
+                  <Button className="w-full bg-mint text-white hover:bg-mint/90">
+                    Elegir plan Pro
+                  </Button>
+                 </Link>
+              </motion.div>
+
+              {/* Plan Premium */}
+              <motion.div
+                className="flex flex-col rounded-xl border border-gray-200 bg-white p-6 shadow-sm transition-shadow hover:shadow-lg"
+                 initial={{ opacity: 0, y: 20 }}
+                 whileInView={{ opacity: 1, y: 0 }}
+                 viewport={{ once: true, margin: "-100px" }}
+                 transition={{ duration: 0.5, delay: 0.4 }}
+              >
+                <h3 className="text-xl font-semibold leading-6 text-gray-900">Roomies Plus</h3>
+                <p className="mt-4 text-4xl font-bold tracking-tight text-gray-900">$9.99<span className="text-base font-medium text-gray-500">/mes</span></p>
+                <p className="mt-3 text-sm text-gray-500">Para funciones avanzadas y colaboración.</p>
+
+                <ul role="list" className="mt-6 space-y-3 text-sm leading-6 text-gray-600 flex-grow">
+                  <li className="flex gap-x-3">
+                    <Check className="h-6 w-5 flex-none text-mint" aria-hidden="true" />
+                    Todo en Pro
+                  </li>
+                  <li className="flex gap-x-3">
+                    <Check className="h-6 w-5 flex-none text-mint" aria-hidden="true" />
+                    Exportar reportes en PDF/Excel
+                  </li>
+                  <li className="flex gap-x-3">
+                    <Check className="h-6 w-5 flex-none text-mint" aria-hidden="true" />
+                    Roles de usuario (Admin/Miembro)
+                  </li>
+                  <li className="flex gap-x-3">
+                    <Check className="h-6 w-5 flex-none text-mint" aria-hidden="true" />
+                    Estadísticas avanzadas de gastos
+                  </li>
+                  <li className="flex gap-x-3">
+                    <Check className="h-6 w-5 flex-none text-mint" aria-hidden="true" />
+                    Soporte premium prioritario
+                  </li>
+                </ul>
+                 <Link href="/login" className="mt-8 w-full">
+                   <Button variant="outline" className="w-full">
+                     Elegir plan Premium
+                   </Button>
+                 </Link>
+              </motion.div>
+
+            </div>
+          </div>
+        </section> {/* End of Pricing Section */}
 
         {/* Testimonials Section */}
         <section id="testimonials" className="bg-gray-50 py-16 md:py-24">
